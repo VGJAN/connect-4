@@ -1,4 +1,4 @@
-let currentPlayer = "red";
+let currentPlayer = "yellow";
 
 const gameContainer = document.getElementById("gameContainer");
 
@@ -32,6 +32,7 @@ headerRow.cells[0].appendChild(activeDisc);
 
 const floatDisc = createIcon("fa-circle");
 floatDisc.id = "floatDisc";
+floatDisc.classList.add("transparent");
 gameContainer.appendChild(floatDisc);
 
 updateFloatDisc()
@@ -58,10 +59,31 @@ function updateActiveDisc() {
   
   headerCells.forEach((cell) => (cell.innerHTML = ""));
   headerCells[col].appendChild(activeDisc);
+  
+  floatDisc.classList.remove("transparent", "red", "yellow");
+  floatDisc.classList.add(currentPlayer);
 
   updateFloatDisc();
 }
 
+function dropDisc() {
+  const col = this.dataset.col;
+  for (let row = tbody.rows.length-1; row >= 0; row--) {
+    const cell = tbody.rows[row].cells[col];
+    if (!cell.innerHTML) {
+      cell.className = currentPlayer;
+      cell.appendChild(createIcon("fa-circle"));
+      cell.setAttribute("style", "mask: unset");
+
+      currentPlayer = currentPlayer === "red" ? "yellow" : "red";
+      updateActiveDisc.call(this);
+      console.log(cell);
+      break;
+    }
+  }
+}
+
 document.querySelectorAll("td").forEach((cell) => {
   cell.addEventListener("mouseover", updateActiveDisc);
+  cell.addEventListener("click", dropDisc);
 });

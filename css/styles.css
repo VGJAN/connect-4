@@ -51,6 +51,14 @@ i {
   font-size: 40px;
 }
 
+.red {
+  color: #ff0000;
+}
+
+.yellow {
+  color: #ffff00;
+}
+
 .transparent {
   color: transparent;
 }
