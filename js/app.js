@@ -27,47 +27,23 @@ for (let i = 0; i < 6; i++) {
 gameContainer.appendChild(gameTable);
 
 const possibleWins = [];
-
-// rows
-for (let i = 0; i < 6; i++) {
-  for (let j = 0; j < 4; j++) {
-    let combo = [];
-    for (let k = 0; k < 4; k++) {
-      combo.push(`${i}-${j + k}`);
+const configs = [
+  { row: [0, 5], col: [0, 3], dr: 0, dc: 1 },
+  { row: [0, 2], col: [0, 6], dr: 1, dc: 0 },
+  { row: [3, 5], col: [0, 3], dr: -1, dc: 1 },
+  { row: [0, 2], col: [0, 3], dr: 1, dc: 1 },
+];
+configs.forEach (({row, col, dr, dc}) => {
+  for (let r = row[0]; r <= row[1]; r++) {
+    for (let c = col[0]; c <= col[1]; c++) {
+      let combo = [];
+      for (let i = 0; i < 4; i++) {
+        combo.push(`${r + i * dr}-${c + i * dc}`);
+      }
+      possibleWins.push(combo);
     }
-    possibleWins.push(combo);
   }
-}
-// columns
-for (let i = 0; i < 3; i++) {
-  for (let j = 0; j < 7; j++) {
-    let combo = [];
-    for (let k = 0; k < 4; k++) {
-      combo.push(`${i + k}-${j}`);
-    }
-    possibleWins.push(combo);
-  }
-}
-// forward diagonals
-for (let i = 3; i < 6; i++) {
-  for (let j = 0; j < 4; j++) {
-    let combo = [];
-    for (let k = 0; k < 4; k++) {
-      combo.push(`${i - k}-${j + k}`);
-    }
-    possibleWins.push(combo);
-  }
-}
-// backward diagonals
-for (let i = 0; i < 3; i++) {
-  for (let j = 0; j < 4; j++) {
-    let combo = [];
-    for (let k = 0; k < 4; k++) {
-      combo.push(`${i + k}-${j + k}`);
-    }
-    possibleWins.push(combo);
-  }
-}
+});
 
 const activeDisc = createIcon("fa-circle");
 activeDisc.id = "activeDisc";
