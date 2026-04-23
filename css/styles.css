@@ -27,6 +27,10 @@ main {
   align-items: center;
 }
 
+#gameContainer {
+  position: relative;
+}
+
 #gameTable {
   border-collapse: collapse;
 }
@@ -41,4 +45,20 @@ th,td {
 td {
   background: #0077ff;
   mask: radial-gradient(circle 20px at center, transparent 95%, black);
+}
+
+i {
+  font-size: 40px;
+}
+
+.transparent {
+  color: transparent;
+}
+
+#floatDisc {
+  position: absolute;
+  z-index: 2;
+  transition: top 0.15s ease, left 0.15s ease;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
 }
