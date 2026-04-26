@@ -69,6 +69,7 @@ for (let i = 0; i < 6; i++) {
 }
 
 gameContainer.appendChild(gameTable);
+updateStatus(`${game.currentPlayer.toUpperCase()}'s turn`);
 
 const winPatterns = [];
 const configs = [
@@ -108,6 +109,11 @@ function createIcon(iconName) {
   return icon;
 }
 
+function updateStatus(message) {
+  const status = document.getElementById("status");
+  status.textContent = message;
+}
+
 function animateDisc(element, type = "hover") {
   const targetRect = element.getBoundingClientRect();
   const containerRect = gameContainer.getBoundingClientRect();
@@ -120,8 +126,8 @@ function animateDisc(element, type = "hover") {
     floatDisc.style.transition = "top 0.5s var(--bounce), left 0.5s var(--bounce)";
   }
 
-  floatDisc.style.top = top + "px";
-  floatDisc.style.left = left + "px";
+  floatDisc.style.top = `${top}px`;
+  floatDisc.style.left = `${left}px`;
 }
 
 function updateActiveDisc() {
@@ -194,16 +200,17 @@ async function dropDisc() {
   if (winningPattern) {
     highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
     gameContainer.classList.add("gameOver");
-    console.log("-------------- " + game.currentPlayer + " won --------------");
+    updateStatus(`${game.currentPlayer.toUpperCase()} won`);
   } else if (game.checkDraw()) {
     gameContainer.classList.add("gameOver");
-    console.log("-------------- It's a draw! --------------");
+    updateStatus(`Draw`);
   } else {
     game.switchPlayer();
     aimDisc.call(this);
     await waitForTransition(floatDisc);
     gameContainer.style.pointerEvents = "unset";
     floatDisc.style.color = game.currentPlayer;
+    updateStatus(`${game.currentPlayer.toUpperCase()}'s turn`);
   }
 }
 
