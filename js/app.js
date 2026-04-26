@@ -3,6 +3,7 @@ class Connect4 {
     this.rows = rows;
     this.cols = cols;
     this.currentPlayer = "yellow";
+    this.moves = 0;
     this.board = this.createBoard();
   }
 
@@ -42,8 +43,6 @@ class Connect4 {
 }
 
 const game = new Connect4();
-
-let moves = 0;
 
 const gameContainer = document.getElementById("gameContainer");
 
@@ -100,7 +99,7 @@ floatDisc.id = "floatDisc";
 floatDisc.style.color = "transparent";
 gameContainer.appendChild(floatDisc);
 
-updateFloatDisc(activeDisc);
+animateDisc(activeDisc);
 
 function createIcon(iconName) {
   const icon = document.createElement("i");
@@ -108,20 +107,20 @@ function createIcon(iconName) {
   return icon;
 }
 
-function updateFloatDisc(element) {
-  const discRect = element.getBoundingClientRect();
-  const containerRect = gameContainer.getBoundingClientRect();
-  const top = discRect.top + discRect.height / 2 - containerRect.top;
-  const left = discRect.left + discRect.width / 2 - containerRect.left;
+function animateDisc(element) {
+    const targetRect = element.getBoundingClientRect();
+    const containerRect = gameContainer.getBoundingClientRect();
+    const top = targetRect.top + targetRect.height / 2 - containerRect.top;
+    const left = targetRect.left + targetRect.width / 2 - containerRect.left;
 
-  if (element.id === "activeDisc") {
-    floatDisc.style.transition = "top 0.25s ease, left 0.25s ease";
-  } else {
-    floatDisc.style.transition = "top 0.5s var(--bounce), left 0.5s var(--bounce)";
-  }
+    if (element.id === "activeDisc") {
+      floatDisc.style.transition = "top 0.25s ease, left 0.25s ease";
+    } else {
+      floatDisc.style.transition = "top 0.5s var(--bounce), left 0.5s var(--bounce)";
+    }
 
-  floatDisc.style.top = top + "px";
-  floatDisc.style.left = left + "px";
+    floatDisc.style.top = top + "px";
+    floatDisc.style.left = left + "px";
 }
 
 function updateActiveDisc() {
@@ -134,9 +133,9 @@ function updateActiveDisc() {
 
 function aimDisc() {
   updateActiveDisc.call(this);
-  updateFloatDisc(activeDisc);
+  animateDisc(activeDisc);
 
-  if (moves === 0) {
+  if (this.moves === 0) {
     floatDisc.style.color = game.currentPlayer;
   }
 }
@@ -164,9 +163,14 @@ function waitForTransition(element, property = "top") {
 function placeDisc(cell) {
   cell.appendChild(createIcon("fa-circle"));
   cell.className = "transparent";
-  moves++;
-  updateFloatDisc(cell.firstChild);
+  this.moves++;
   console.log(`Placed by ${game.currentPlayer}`);
+}
+
+function updateCellUI(cell, player) {
+  cell.className = player;
+  cell.style.mask = "unset";
+  floatDisc.style.color = "transparent";
 }
 
 async function dropDisc() {
@@ -176,13 +180,13 @@ async function dropDisc() {
 
   const cell = tbody.rows[row].cells[col];
 
-  gameContainer.style.pointerEvents = "none";
-  await placeDisc(cell);
-  await waitForTransition(floatDisc, "top");
+  placeDisc(cell);
 
-  cell.className = game.currentPlayer;
-  cell.style.mask = "unset";
-  floatDisc.style.color = "transparent";
+  gameContainer.style.pointerEvents = "none";
+  animateDisc(cell.firstChild);
+  await waitForTransition(floatDisc);
+
+  updateCellUI(cell, game.currentPlayer);
 
   const winningPattern = game.checkWin(winPatterns);
 
@@ -190,13 +194,15 @@ async function dropDisc() {
     highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
     gameContainer.classList.add("gameOver");
     console.log("-------------- " + game.currentPlayer + " won --------------");
-  } else if (checkDraw()) {
+  }
+  else if (checkDraw()) {
     gameContainer.classList.add("gameOver");
     console.log("-------------- It's a draw! --------------");
-  } else {
+  }
+  else {
     game.switchPlayer();
     aimDisc.call(this);
-    await waitForTransition(floatDisc, "top");
+    await waitForTransition(floatDisc);
     gameContainer.style.pointerEvents = "unset";
     floatDisc.style.color = game.currentPlayer;
   }
