@@ -36,11 +36,11 @@ main {
   align-items: center;
 }
 
-#gameContainer {
+#gameBoard {
   position: relative;
 }
 
-#gameTable {
+table {
   border-collapse: collapse;
   overflow: hidden;
 }
@@ -91,7 +91,7 @@ i {
   color: transparent;
 }
 
-#floatDisc {
+#cursorDisc {
   position: absolute;
   z-index: 2;
   pointer-events: none;

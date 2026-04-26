@@ -1,19 +1,23 @@
+// ========================
+// GAME LOGIC
+// ========================
 class Connect4 {
   constructor(rows = 6, cols = 7) {
     this.rows = rows;
     this.cols = cols;
     this.currentPlayer = "yellow";
+    this.moveCount = 0;
     this.board = this.createBoard();
   }
 
   createBoard() {
-    console.log("=> Player " + this.currentPlayer + " turn");
-    return Array.from({ length: this.rows }, () => Array(this.cols).fill(null));
+    return Array.from({ length: this.rows }, () => 
+      Array(this.cols).fill(null)
+    );
   }
 
   switchPlayer() {
     this.currentPlayer = this.currentPlayer === "red" ? "yellow" : "red";
-    console.log("=> Player " + this.currentPlayer + " turn");
   }
 
   drop(col) {
@@ -26,10 +30,12 @@ class Connect4 {
     return null;
   }
 
-  checkWin(patterns) {
-    for (const pattern of patterns) {
+  checkWin(winPatterns) {
+    for (const pattern of winPatterns) {
       const cells = pattern.map(([r, c]) => this.board[r][c]);
-      const isWinning = cells.every((cell) => cell && cell === this.currentPlayer);
+      const isWinning = cells.every(
+        (cell) => cell && cell === this.currentPlayer
+      );
 
       if (isWinning) return pattern;
     }
@@ -37,71 +43,73 @@ class Connect4 {
   }
 
   checkDraw() {
-    return this.board.every((row) => row.every((cell) => cell !== null));
+    return this.board.every(
+      (row) => row.every((cell) => cell !== null)
+    );
+  }
+
+  reset() {
+    this.board = this.createBoard();
+    this.switchPlayer()
+    this.moves = 0;
   }
 }
 
-let moves = 0;
+// ========================
+// DATA GENERATION
+// ========================
+function generateWinPatterns() {
+  const winPatterns = [];
+  const configs = [
+    { rowRange: [0, 5], colRange: [0, 3], rowStep: 0, colStep: 1 },
+    { rowRange: [0, 2], colRange: [0, 6], rowStep: 1, colStep: 0 },
+    { rowRange: [3, 5], colRange: [0, 3], rowStep: -1, colStep: 1 },
+    { rowRange: [0, 2], colRange: [0, 3], rowStep: 1, colStep: 1 },
+  ];
 
-const game = new Connect4();
-
-const gameContainer = document.getElementById("gameContainer");
-
-const gameTable = document.createElement("table");
-gameTable.id = "gameTable";
-
-const thead = gameTable.createTHead();
-const headerRow = thead.insertRow();
-for (let i = 0; i < 7; i++) {
-  const th = document.createElement("th");
-  headerRow.appendChild(th);
-}
-
-const tbody = gameTable.createTBody();
-for (let i = 0; i < 6; i++) {
-  const row = tbody.insertRow();
-  for (let j = 0; j < 7; j++) {
-    const cell = row.insertCell();
-    cell.setAttribute("data-row", i);
-    cell.setAttribute("data-col", j);
-    cell.className = "empty";
-  }
-}
-
-gameContainer.appendChild(gameTable);
-updateStatus(`${game.currentPlayer.toUpperCase()}'s turn`);
-
-const winPatterns = [];
-const configs = [
-  { rowRange: [0, 5], colRange: [0, 3], rowStep: 0, colStep: 1 },
-  { rowRange: [0, 2], colRange: [0, 6], rowStep: 1, colStep: 0 },
-  { rowRange: [3, 5], colRange: [0, 3], rowStep: -1, colStep: 1 },
-  { rowRange: [0, 2], colRange: [0, 3], rowStep: 1, colStep: 1 },
-];
-
-configs.forEach(({ rowRange, colRange, rowStep, colStep }) => {
-  for (let r = rowRange[0]; r <= rowRange[1]; r++) {
-    for (let c = colRange[0]; c <= colRange[1]; c++) {
-      let pattern = [];
-      for (let i = 0; i < 4; i++) {
-        pattern.push([r + i * rowStep, c + i * colStep]);
+  configs.forEach(({ rowRange, colRange, rowStep, colStep }) => {
+    for (let r = rowRange[0]; r <= rowRange[1]; r++) {
+      for (let c = colRange[0]; c <= colRange[1]; c++) {
+        let pattern = [];
+        for (let i = 0; i < 4; i++) {
+          pattern.push([r + i * rowStep, c + i * colStep]);
+        }
+        winPatterns.push(pattern);
       }
-      winPatterns.push(pattern);
+    }
+  });
+
+  return winPatterns;
+}
+
+// ========================
+// UI BUILDERS
+// ========================
+function createTable() {
+  const table = document.createElement("table");
+  const thead = table.createTHead();
+  const tbody = table.createTBody();
+
+  // Table Head
+  const headerRow = thead.insertRow();
+  for (let i = 0; i < 7; i++) {
+    const th = document.createElement("th");
+    headerRow.appendChild(th);
+  }
+
+  // Table Body
+  for (let i = 0; i < 6; i++) {
+    const row = tbody.insertRow();
+    for (let j = 0; j < 7; j++) {
+      const cell = row.insertCell();
+      cell.dataset.row = i;
+      cell.dataset.col = j;
+      cell.className = "empty";
     }
   }
-});
 
-const activeDisc = createIcon("fa-circle");
-activeDisc.id = "activeDisc";
-activeDisc.style.color = "transparent";
-headerRow.cells[0].appendChild(activeDisc);
-
-const floatDisc = createIcon("fa-circle");
-floatDisc.id = "floatDisc";
-floatDisc.style.color = "transparent";
-gameContainer.appendChild(floatDisc);
-
-animateDisc(activeDisc, "hover");
+  return { table, tbody };
+}
 
 function createIcon(iconName) {
   const icon = document.createElement("i");
@@ -109,45 +117,108 @@ function createIcon(iconName) {
   return icon;
 }
 
-function updateStatus(message) {
-  const status = document.getElementById("status");
-  status.textContent = message;
+// ========================
+// INITIAL SETUP
+// ========================
+const game = new Connect4();
+
+const gameBoard = document.getElementById("gameBoard");
+const boardInput = {
+  lock() {
+    gameBoard.style.pointerEvents = "none"
+  },
+  
+  unlock() {
+    gameBoard.style.pointerEvents = "auto"
+  }
+}
+const status = document.getElementById("status");
+const { table, tbody } = createTable();
+
+gameBoard.appendChild(table);
+
+const winPatterns = generateWinPatterns();
+
+const cursorDisc = createIcon("fa-circle");
+cursorDisc.id = "cursorDisc";
+updateCursorColor("transparent");
+gameBoard.appendChild(cursorDisc);
+
+animateDisc(table.querySelector("th"), "hover");
+
+updateStatus("turn");
+
+// ========================
+// UI HELPERS
+// ========================
+function updateStatus(type) {
+  const player = game.currentPlayer.toUpperCase();
+  const messageTemplate = {
+    turn: `${player}'s turn`,
+    win: `${player} wins!`,
+    draw: "Draw!"
+  }
+
+  status.textContent = messageTemplate[type];
 }
 
-function animateDisc(element, type = "hover") {
+function updateCellUI(cell, player) {
+  cell.className = player;
+  cell.style.mask = "unset";
+}
+
+function updateCursorColor(color) {
+  cursorDisc.style.color = color;
+}
+
+function highlightWinner(winningCells) {
+  const icons = table.querySelectorAll("td i");
+  icons.forEach((icon) => {
+    icon.style.opacity = "0.5";
+  });
+
+  winningCells.forEach((cell) => {
+    const icon = cell.firstChild;
+    icon.style.opacity = "1";
+  });
+}
+
+// ========================
+// ANIMATIONS
+// ========================
+function animateDisc(element, type) {
   const targetRect = element.getBoundingClientRect();
-  const containerRect = gameContainer.getBoundingClientRect();
+  const containerRect = gameBoard.getBoundingClientRect();
   const top = targetRect.top + targetRect.height / 2 - containerRect.top;
   const left = targetRect.left + targetRect.width / 2 - containerRect.left;
 
-  if (type === "hover") {
-    floatDisc.style.transition = "top 0.25s ease, left 0.25s ease";
-  } else if (type === "drop") {
-    floatDisc.style.transition = "top 0.5s var(--bounce), left 0.5s var(--bounce)";
+  const discAnimation = {
+    hover: "top 0.25s ease, left 0.25s ease",
+    drop: "top 0.5s var(--bounce), left 0.5s var(--bounce)"
   }
 
-  floatDisc.style.top = `${top}px`;
-  floatDisc.style.left = `${left}px`;
+  cursorDisc.style.transition = discAnimation[type];
+  cursorDisc.style.top = `${top}px`;
+  cursorDisc.style.left = `${left}px`;
 }
 
-function updateActiveDisc() {
-  const col = this.dataset.col;
-  const headerCells = document.querySelectorAll("#gameTable thead th");
+function animateHover() {
+  const headerCells = document.querySelectorAll("th");
+  const col = Number(this.dataset.col);
+  const target = headerCells[col];
+  
+  animateDisc(target, "hover");
 
-  headerCells.forEach((cell) => (cell.innerHTML = ""));
-  headerCells[col].appendChild(activeDisc);
-}
-
-function aimDisc() {
-  updateActiveDisc.call(this);
-  animateDisc(activeDisc, "hover");
-
-  if (moves === 0) {
-    floatDisc.style.color = game.currentPlayer;
+  if (game.moveCount === 0) {
+    updateCursorColor(game.currentPlayer);
   }
 }
 
-function waitForTransition(element, property = "top") {
+function animateDrop(cell) {
+  animateDisc(cell.firstChild, "drop");
+}
+
+function waitForAnimationEnd(element, property = "top") {
   return new Promise((resolve) => {
     const timeout = setTimeout(() => {
       cleanup();
@@ -167,17 +238,13 @@ function waitForTransition(element, property = "top") {
   });
 }
 
+// ========================
+// GAME FLOW
+// ========================
 function placeDisc(cell) {
   cell.appendChild(createIcon("fa-circle"));
   cell.className = "transparent";
-  moves++;
-  console.log(`Placed by ${game.currentPlayer}`);
-}
-
-function updateCellUI(cell, player) {
-  cell.className = player;
-  cell.style.mask = "unset";
-  floatDisc.style.color = "transparent";
+  game.moveCount++;
 }
 
 async function dropDisc() {
@@ -188,45 +255,41 @@ async function dropDisc() {
   const cell = tbody.rows[row].cells[col];
 
   placeDisc(cell);
-
-  gameContainer.style.pointerEvents = "none";
-  animateDisc(cell.firstChild, "drop");
-  await waitForTransition(floatDisc);
+  boardInput.lock();
+  
+  animateDrop(cell);
+  await waitForAnimationEnd(cursorDisc);
 
   updateCellUI(cell, game.currentPlayer);
+  updateCursorColor("transparent");
 
   const winningPattern = game.checkWin(winPatterns);
 
   if (winningPattern) {
     highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
-    gameContainer.classList.add("gameOver");
-    updateStatus(`${game.currentPlayer.toUpperCase()} won`);
-  } else if (game.checkDraw()) {
-    gameContainer.classList.add("gameOver");
-    updateStatus(`Draw`);
-  } else {
-    game.switchPlayer();
-    aimDisc.call(this);
-    await waitForTransition(floatDisc);
-    gameContainer.style.pointerEvents = "unset";
-    floatDisc.style.color = game.currentPlayer;
-    updateStatus(`${game.currentPlayer.toUpperCase()}'s turn`);
+    updateStatus("win");
+    return;
   }
+  
+  if (game.checkDraw()) {
+    updateStatus("draw");
+    return;
+  }
+
+  game.switchPlayer();
+
+  animateHover.call(this);
+  await waitForAnimationEnd(cursorDisc);
+
+  boardInput.unlock();
+  updateCursorColor(game.currentPlayer);
+  updateStatus("turn");
 }
 
-function highlightWinner(winningCells) {
-  const icons = gameTable.querySelectorAll("td i");
-  icons.forEach((icon) => {
-    icon.style.opacity = "0.5";
-  });
-
-  winningCells.forEach((cell) => {
-    const icon = cell.firstChild;
-    icon.style.opacity = "1";
-  });
-}
-
+// ========================
+// EVENT LISTENERS
+// ========================
 document.querySelectorAll("td").forEach((cell) => {
-  cell.addEventListener("mouseover", aimDisc);
+  cell.addEventListener("mouseover", animateHover);
   cell.addEventListener("click", dropDisc);
 });
