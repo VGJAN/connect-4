@@ -3,26 +3,23 @@ class Connect4 {
     this.rows = rows;
     this.cols = cols;
     this.currentPlayer = "yellow";
-    this.moves = 0;
     this.board = this.createBoard();
   }
 
   createBoard() {
     console.log("=> Player " + this.currentPlayer + " turn");
-    return Array.from({ length: this.rows }, () =>
-      Array(this.cols).fill(null)
-    );
+    return Array.from({ length: this.rows }, () => Array(this.cols).fill(null));
   }
 
   switchPlayer() {
     this.currentPlayer = this.currentPlayer === "red" ? "yellow" : "red";
-    console.log("=> Player " + this.currentPlayer + " turn")
+    console.log("=> Player " + this.currentPlayer + " turn");
   }
 
   drop(col) {
     for (let row = this.rows - 1; row >= 0; row--) {
       if (!this.board[row][col]) {
-        this.board[row][col] = this.currentPlayer
+        this.board[row][col] = this.currentPlayer;
         return row;
       }
     }
@@ -32,15 +29,19 @@ class Connect4 {
   checkWin(patterns) {
     for (const pattern of patterns) {
       const cells = pattern.map(([r, c]) => this.board[r][c]);
-      const isWinning = cells.every(
-        (cell) => cell && cell === this.currentPlayer
-      );
+      const isWinning = cells.every((cell) => cell && cell === this.currentPlayer);
 
       if (isWinning) return pattern;
     }
     return null;
   }
+
+  checkDraw() {
+    return this.board.every((row) => row.every((cell) => cell !== null));
+  }
 }
+
+let moves = 0;
 
 const game = new Connect4();
 
@@ -80,11 +81,11 @@ const configs = [
 configs.forEach(({ rowRange, colRange, rowStep, colStep }) => {
   for (let r = rowRange[0]; r <= rowRange[1]; r++) {
     for (let c = colRange[0]; c <= colRange[1]; c++) {
-      let patterns = [];
+      let pattern = [];
       for (let i = 0; i < 4; i++) {
-        patterns.push([r + i * rowStep, c + i * colStep]);
+        pattern.push([r + i * rowStep, c + i * colStep]);
       }
-      winPatterns.push(patterns);
+      winPatterns.push(pattern);
     }
   }
 });
@@ -99,7 +100,7 @@ floatDisc.id = "floatDisc";
 floatDisc.style.color = "transparent";
 gameContainer.appendChild(floatDisc);
 
-animateDisc(activeDisc);
+animateDisc(activeDisc, "hover");
 
 function createIcon(iconName) {
   const icon = document.createElement("i");
@@ -107,20 +108,20 @@ function createIcon(iconName) {
   return icon;
 }
 
-function animateDisc(element) {
-    const targetRect = element.getBoundingClientRect();
-    const containerRect = gameContainer.getBoundingClientRect();
-    const top = targetRect.top + targetRect.height / 2 - containerRect.top;
-    const left = targetRect.left + targetRect.width / 2 - containerRect.left;
+function animateDisc(element, type = "hover") {
+  const targetRect = element.getBoundingClientRect();
+  const containerRect = gameContainer.getBoundingClientRect();
+  const top = targetRect.top + targetRect.height / 2 - containerRect.top;
+  const left = targetRect.left + targetRect.width / 2 - containerRect.left;
 
-    if (element.id === "activeDisc") {
-      floatDisc.style.transition = "top 0.25s ease, left 0.25s ease";
-    } else {
-      floatDisc.style.transition = "top 0.5s var(--bounce), left 0.5s var(--bounce)";
-    }
+  if (type === "hover") {
+    floatDisc.style.transition = "top 0.25s ease, left 0.25s ease";
+  } else if (type === "drop") {
+    floatDisc.style.transition = "top 0.5s var(--bounce), left 0.5s var(--bounce)";
+  }
 
-    floatDisc.style.top = top + "px";
-    floatDisc.style.left = left + "px";
+  floatDisc.style.top = top + "px";
+  floatDisc.style.left = left + "px";
 }
 
 function updateActiveDisc() {
@@ -133,9 +134,9 @@ function updateActiveDisc() {
 
 function aimDisc() {
   updateActiveDisc.call(this);
-  animateDisc(activeDisc);
+  animateDisc(activeDisc, "hover");
 
-  if (this.moves === 0) {
+  if (moves === 0) {
     floatDisc.style.color = game.currentPlayer;
   }
 }
@@ -163,7 +164,7 @@ function waitForTransition(element, property = "top") {
 function placeDisc(cell) {
   cell.appendChild(createIcon("fa-circle"));
   cell.className = "transparent";
-  this.moves++;
+  moves++;
   console.log(`Placed by ${game.currentPlayer}`);
 }
 
@@ -174,7 +175,7 @@ function updateCellUI(cell, player) {
 }
 
 async function dropDisc() {
-  const col = this.dataset.col;
+  const col = Number(this.dataset.col);
   const row = game.drop(col);
   if (row === null) return;
 
@@ -183,7 +184,7 @@ async function dropDisc() {
   placeDisc(cell);
 
   gameContainer.style.pointerEvents = "none";
-  animateDisc(cell.firstChild);
+  animateDisc(cell.firstChild, "drop");
   await waitForTransition(floatDisc);
 
   updateCellUI(cell, game.currentPlayer);
@@ -194,25 +195,16 @@ async function dropDisc() {
     highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
     gameContainer.classList.add("gameOver");
     console.log("-------------- " + game.currentPlayer + " won --------------");
-  }
-  else if (checkDraw()) {
+  } else if (game.checkDraw()) {
     gameContainer.classList.add("gameOver");
     console.log("-------------- It's a draw! --------------");
-  }
-  else {
+  } else {
     game.switchPlayer();
     aimDisc.call(this);
     await waitForTransition(floatDisc);
     gameContainer.style.pointerEvents = "unset";
     floatDisc.style.color = game.currentPlayer;
   }
-}
-
-function checkDraw() {
-  const cells = document.querySelectorAll("td");
-  const isDraw = Array.from(cells).every((cell) => cell.innerHTML);
-
-  return isDraw;
 }
 
 function highlightWinner(winningCells) {
