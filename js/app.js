@@ -1,4 +1,48 @@
-let currentPlayer = "yellow";
+class Connect4 {
+  constructor(rows = 6, cols = 7) {
+    this.rows = rows;
+    this.cols = cols;
+    this.currentPlayer = "yellow";
+    this.board = this.createBoard();
+  }
+
+  createBoard() {
+    console.log("=> Player " + this.currentPlayer + " turn");
+    return Array.from({ length: this.rows }, () =>
+      Array(this.cols).fill(null)
+    );
+  }
+
+  switchPlayer() {
+    this.currentPlayer = this.currentPlayer === "red" ? "yellow" : "red";
+    console.log("=> Player " + this.currentPlayer + " turn")
+  }
+
+  drop(col) {
+    for (let row = this.rows - 1; row >= 0; row--) {
+      if (!this.board[row][col]) {
+        this.board[row][col] = this.currentPlayer
+        return row;
+      }
+    }
+    return null;
+  }
+
+  checkWin(patterns) {
+    for (const pattern of patterns) {
+      const cells = pattern.map(([r, c]) => this.board[r][c]);
+      const isWinning = cells.every(
+        (cell) => cell && cell === this.currentPlayer
+      );
+
+      if (isWinning) return pattern;
+    }
+    return null;
+  }
+}
+
+const game = new Connect4();
+
 let moves = 0;
 
 const gameContainer = document.getElementById("gameContainer");
@@ -20,7 +64,6 @@ for (let i = 0; i < 6; i++) {
     const cell = row.insertCell();
     cell.setAttribute("data-row", i);
     cell.setAttribute("data-col", j);
-    cell.id = `${i}-${j}`;
     cell.className = "empty";
   }
 }
@@ -40,7 +83,7 @@ configs.forEach(({ rowRange, colRange, rowStep, colStep }) => {
     for (let c = colRange[0]; c <= colRange[1]; c++) {
       let patterns = [];
       for (let i = 0; i < 4; i++) {
-        patterns.push(`${r + i * rowStep}-${c + i * colStep}`);
+        patterns.push([r + i * rowStep, c + i * colStep]);
       }
       winPatterns.push(patterns);
     }
@@ -58,14 +101,6 @@ floatDisc.style.color = "transparent";
 gameContainer.appendChild(floatDisc);
 
 updateFloatDisc(activeDisc);
-
-function switchPlayer() {
-  if (currentPlayer === "red") {
-    currentPlayer = "yellow";
-  } else {
-    currentPlayer = "red";
-  }
-}
 
 function createIcon(iconName) {
   const icon = document.createElement("i");
@@ -102,7 +137,7 @@ function aimDisc() {
   updateFloatDisc(activeDisc);
 
   if (moves === 0) {
-    floatDisc.style.color = currentPlayer;
+    floatDisc.style.color = game.currentPlayer;
   }
 }
 
@@ -126,25 +161,17 @@ function waitForTransition(element, property = "top") {
   });
 }
 
-function getAvailableRow(col) {
-  for (let row = tbody.rows.length - 1; row >= 0; row--) {
-    const cell = tbody.rows[row].cells[col];
-    if (!cell.innerHTML) return row;
-  }
-  return null;
-}
-
 function placeDisc(cell) {
   cell.appendChild(createIcon("fa-circle"));
   cell.className = "transparent";
   moves++;
   updateFloatDisc(cell.firstChild);
-  console.log(`Placed in ${cell.id} by ${currentPlayer}`);
+  console.log(`Placed by ${game.currentPlayer}`);
 }
 
 async function dropDisc() {
   const col = this.dataset.col;
-  const row = getAvailableRow(col);
+  const row = game.drop(col);
   if (row === null) return;
 
   const cell = tbody.rows[row].cells[col];
@@ -153,36 +180,25 @@ async function dropDisc() {
   await placeDisc(cell);
   await waitForTransition(floatDisc, "top");
 
-  cell.className = currentPlayer;
+  cell.className = game.currentPlayer;
   cell.style.mask = "unset";
   floatDisc.style.color = "transparent";
 
-  const winningCells = checkWin();
+  const winningPattern = game.checkWin(winPatterns);
 
-  if (winningCells) {
-    highlightWinner(winningCells);
+  if (winningPattern) {
+    highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
     gameContainer.classList.add("gameOver");
-    console.log("-------------- " + currentPlayer + " won --------------");
+    console.log("-------------- " + game.currentPlayer + " won --------------");
   } else if (checkDraw()) {
     gameContainer.classList.add("gameOver");
     console.log("-------------- It's a draw! --------------");
   } else {
-    switchPlayer();
+    game.switchPlayer();
     aimDisc.call(this);
     await waitForTransition(floatDisc, "top");
     gameContainer.style.pointerEvents = "unset";
-    floatDisc.style.color = currentPlayer;
-  }
-}
-
-function checkWin() {
-  for (let i = 0; i < winPatterns.length; i++) {
-    const cells = winPatterns[i].map((id) => document.getElementById(id));
-    const isWinningPattern = cells.every(
-      (cell) => cell.className === currentPlayer,
-    );
-
-    if (isWinningPattern) return cells;
+    floatDisc.style.color = game.currentPlayer;
   }
 }
 
