@@ -5,9 +5,22 @@ class Connect4 {
   constructor(rows = 6, cols = 7) {
     this.rows = rows;
     this.cols = cols;
-    this.currentPlayer = "yellow";
-    this.moveCount = 0;
+    this.players = [
+      {
+        name: "Player 1",
+        color: "yellow",
+        score: 0
+      },
+      {
+        name: "Player 2",
+        color: "red",
+        score: 0
+      }
+    ]
     this.board = this.createBoard();
+    this.currentPlayerIndex = 0;
+    this.roundStarter = this.currentPlayerIndex;
+    this.moveCount = 0;
   }
 
   createBoard() {
@@ -17,13 +30,14 @@ class Connect4 {
   }
 
   switchPlayer() {
-    this.currentPlayer = this.currentPlayer === "red" ? "yellow" : "red";
+    this.currentPlayerIndex = this.currentPlayerIndex === 0 ? 1 : 0;
   }
 
   drop(col) {
     for (let row = this.rows - 1; row >= 0; row--) {
       if (!this.board[row][col]) {
-        this.board[row][col] = this.currentPlayer;
+        this.board[row][col] = this.players[this.currentPlayerIndex].color;
+        this.moveCount++;
         return row;
       }
     }
@@ -34,7 +48,7 @@ class Connect4 {
     for (const pattern of winPatterns) {
       const cells = pattern.map(([r, c]) => this.board[r][c]);
       const isWinning = cells.every(
-        (cell) => cell && cell === this.currentPlayer
+        (cell) => cell !== null && cell === this.players[this.currentPlayerIndex].color
       );
 
       if (isWinning) return pattern;
@@ -50,8 +64,10 @@ class Connect4 {
 
   reset() {
     this.board = this.createBoard();
-    this.switchPlayer()
-    this.moves = 0;
+    this.moveCount = 0;
+    
+    this.roundStarter = this.roundStarter === 0 ? 1 : 0;
+    this.currentPlayerIndex = this.roundStarter;
   }
 }
 
@@ -85,25 +101,25 @@ function generateWinPatterns() {
 // ========================
 // UI BUILDERS
 // ========================
-function createTable() {
+function createTable(rows, cols) {
   const table = document.createElement("table");
   const thead = table.createTHead();
   const tbody = table.createTBody();
 
   // Table Head
   const headerRow = thead.insertRow();
-  for (let i = 0; i < 7; i++) {
+  for (let c = 0; c < cols; c++) {
     const th = document.createElement("th");
     headerRow.appendChild(th);
   }
 
   // Table Body
-  for (let i = 0; i < 6; i++) {
+  for (let r = 0; r < rows; r++) {
     const row = tbody.insertRow();
-    for (let j = 0; j < 7; j++) {
+    for (let c = 0; c < cols; c++) {
       const cell = row.insertCell();
-      cell.dataset.row = i;
-      cell.dataset.col = j;
+      cell.dataset.row = r;
+      cell.dataset.col = c;
       cell.className = "empty";
     }
   }
@@ -111,9 +127,10 @@ function createTable() {
   return { table, tbody };
 }
 
-function createIcon(iconName) {
+function createIcon(iconName, iconId) {
   const icon = document.createElement("i");
   icon.classList.add("fa-solid", iconName);
+  if (iconId) icon.id = iconId;
   return icon;
 }
 
@@ -121,53 +138,62 @@ function createIcon(iconName) {
 // INITIAL SETUP
 // ========================
 const game = new Connect4();
+const winPatterns = generateWinPatterns();
 
-const gameBoard = document.getElementById("gameBoard");
-const boardInput = {
-  lock() {
-    gameBoard.style.pointerEvents = "none"
-  },
-  
-  unlock() {
-    gameBoard.style.pointerEvents = "auto"
-  }
-}
-const status = document.getElementById("status");
-const { table, tbody } = createTable();
+const gameBoard = document.querySelector("#gameBoard");
+const { table, tbody } = createTable(game.rows, game.cols);
 
 gameBoard.appendChild(table);
 
-const winPatterns = generateWinPatterns();
+const boardInput = {
+  lock() {
+    gameBoard.style.pointerEvents = "none";
+  },
+  
+  unlock() {
+    gameBoard.style.pointerEvents = "auto";
+  }
+};
+const player1Name = document.querySelector("#player1Name");
+const player2Name = document.querySelector("#player2Name");
+const player1Score = document.querySelector("#player1Score");
+const player2Score = document.querySelector("#player2Score");
+const gameStatus = document.querySelector("#gameStatus");
 
-const cursorDisc = createIcon("fa-circle");
-cursorDisc.id = "cursorDisc";
-updateCursorColor("transparent");
+const cursorDisc = createIcon("fa-circle", "cursorDisc");
 gameBoard.appendChild(cursorDisc);
-
-animateDisc(table.querySelector("th"), "hover");
+cursorDiscInit();
 
 updateStatus("turn");
 
 // ========================
 // UI HELPERS
 // ========================
+function cursorDiscInit() {
+  updateCursorColor("transparent");
+  animateDisc(table.querySelector("th"), "hover");
+}
+
 function updateStatus(type) {
-  const player = game.currentPlayer.toUpperCase();
+  const player = game.players[game.currentPlayerIndex].name;
   const messageTemplate = {
     turn: `${player}'s turn`,
     win: `${player} wins!`,
     draw: "Draw!"
   }
 
-  status.textContent = messageTemplate[type];
+  gameStatus.textContent = messageTemplate[type];
+  player1Score.textContent = game.players[0].score;
+  player2Score.textContent = game.players[1].score;
 }
 
-function updateCellUI(cell, player) {
-  cell.className = player;
+function updateCellUI(cell, playerIndex) {
+  cell.className = game.players[playerIndex].color;
   cell.style.mask = "unset";
 }
 
-function updateCursorColor(color) {
+function updateCursorColor(playerIndex) {
+  const color = playerIndex === "transparent" ? playerIndex : game.players[playerIndex].color;
   cursorDisc.style.color = color;
 }
 
@@ -183,14 +209,22 @@ function highlightWinner(winningCells) {
   });
 }
 
+function clearTable() {
+  gameBoard.querySelectorAll("td").forEach((cell) => {
+    cell.innerHTML = null;
+    cell.className = "empty";
+    cell.style.mask = "";
+  })
+}
+
 // ========================
 // ANIMATIONS
 // ========================
 function animateDisc(element, type) {
   const targetRect = element.getBoundingClientRect();
-  const containerRect = gameBoard.getBoundingClientRect();
-  const top = targetRect.top + targetRect.height / 2 - containerRect.top;
-  const left = targetRect.left + targetRect.width / 2 - containerRect.left;
+  const boardRect = gameBoard.getBoundingClientRect();
+  const top = targetRect.top + targetRect.height / 2 - boardRect.top;
+  const left = targetRect.left + targetRect.width / 2 - boardRect.left;
 
   const discAnimation = {
     hover: "top 0.25s ease, left 0.25s ease",
@@ -210,7 +244,7 @@ function animateHover() {
   animateDisc(target, "hover");
 
   if (game.moveCount === 0) {
-    updateCursorColor(game.currentPlayer);
+    updateCursorColor(game.currentPlayerIndex);
   }
 }
 
@@ -241,10 +275,9 @@ function waitForAnimationEnd(element, property = "top") {
 // ========================
 // GAME FLOW
 // ========================
-function placeDisc(cell) {
+function insertDiscElement(cell) {
   cell.appendChild(createIcon("fa-circle"));
   cell.className = "transparent";
-  game.moveCount++;
 }
 
 async function dropDisc() {
@@ -254,18 +287,19 @@ async function dropDisc() {
 
   const cell = tbody.rows[row].cells[col];
 
-  placeDisc(cell);
+  insertDiscElement(cell);
   boardInput.lock();
   
   animateDrop(cell);
   await waitForAnimationEnd(cursorDisc);
 
-  updateCellUI(cell, game.currentPlayer);
+  updateCellUI(cell, game.currentPlayerIndex);
   updateCursorColor("transparent");
 
   const winningPattern = game.checkWin(winPatterns);
 
   if (winningPattern) {
+    game.players[game.currentPlayerIndex].score++;
     highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
     updateStatus("win");
     return;
@@ -282,14 +316,22 @@ async function dropDisc() {
   await waitForAnimationEnd(cursorDisc);
 
   boardInput.unlock();
-  updateCursorColor(game.currentPlayer);
+  updateCursorColor(game.currentPlayerIndex);
   updateStatus("turn");
 }
 
 // ========================
 // EVENT LISTENERS
 // ========================
-document.querySelectorAll("td").forEach((cell) => {
+gameBoard.querySelectorAll("td").forEach((cell) => {
   cell.addEventListener("mouseover", animateHover);
   cell.addEventListener("click", dropDisc);
+});
+
+document.querySelector("#resetBtn").addEventListener("click", () => {
+  game.reset();
+  clearTable();
+  cursorDiscInit();
+  updateStatus("turn");
+  boardInput.unlock()
 });
