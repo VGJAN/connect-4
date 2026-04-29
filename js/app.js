@@ -127,11 +127,11 @@ function createTable(rows, cols) {
   return { table, tbody };
 }
 
-function createIcon(iconName, iconId) {
-  const icon = document.createElement("i");
-  icon.classList.add("fa-solid", iconName);
-  if (iconId) icon.id = iconId;
-  return icon;
+function createDiscClone() {
+  const discClone = cursorDisc.cloneNode(false);
+  discClone.removeAttribute("id");
+
+  return discClone;
 }
 
 // ========================
@@ -140,38 +140,42 @@ function createIcon(iconName, iconId) {
 const game = new Connect4();
 const winPatterns = generateWinPatterns();
 
-const gameBoard = document.querySelector("#gameBoard");
+const gameBoard = document.querySelector(".gameBoard");
+const discLayer = document.querySelector(".discLayer");
 const { table, tbody } = createTable(game.rows, game.cols);
 
 gameBoard.appendChild(table);
 
 const boardInput = {
+  isLocked: false,
   lock() {
-    gameBoard.style.pointerEvents = "none";
+    this.isLocked = true;
+    disableDropDisc();
   },
-  
   unlock() {
-    gameBoard.style.pointerEvents = "auto";
+    this.isLocked = false;
+    enableDropDisc();
   }
 };
+
 const player1Name = document.querySelector("#player1Name");
 const player2Name = document.querySelector("#player2Name");
 const player1Score = document.querySelector("#player1Score");
 const player2Score = document.querySelector("#player2Score");
-const gameStatus = document.querySelector("#gameStatus");
 
-const cursorDisc = createIcon("fa-circle", "cursorDisc");
-gameBoard.appendChild(cursorDisc);
+const cursorDisc = document.querySelector("#cursorDisc");
 cursorDiscInit();
 
+const gameStatus = document.querySelector("#gameStatus");
 updateStatus("turn");
 
 // ========================
 // UI HELPERS
 // ========================
 function cursorDiscInit() {
-  updateCursorColor("transparent");
-  animateDisc(table.querySelector("th"), "hover");
+  updateCursorColor();
+  cursorDisc.style.display = "none";
+  animateDisc(cursorDisc, table.querySelector("th"), "hover");
 }
 
 function updateStatus(type) {
@@ -187,69 +191,61 @@ function updateStatus(type) {
   player2Score.textContent = game.players[1].score;
 }
 
-function updateCellUI(cell, playerIndex) {
-  cell.className = game.players[playerIndex].color;
-  cell.style.mask = "unset";
-}
-
 function updateCursorColor(playerIndex) {
-  const color = playerIndex === "transparent" ? playerIndex : game.players[playerIndex].color;
-  cursorDisc.style.color = color;
+  if (playerIndex == undefined) {
+    cursorDisc.style.display = "none";
+    return;
+  }
+  cursorDisc.style.display = "unset";
+  cursorDisc.className = `disc ${game.players[playerIndex].color}`;
 }
 
-function highlightWinner(winningCells) {
-  const icons = table.querySelectorAll("td i");
-  icons.forEach((icon) => {
-    icon.style.opacity = "0.5";
-  });
+// function highlightWinner(winningCells) {
+//   const icons = table.querySelectorAll("td i");
+//   icons.forEach((icon) => {
+//     icon.style.opacity = "0.5";
+//   });
 
-  winningCells.forEach((cell) => {
-    const icon = cell.firstChild;
-    icon.style.opacity = "1";
-  });
-}
+//   winningCells.forEach((cell) => {
+//     const icon = cell.firstChild;
+//     // icon.style.opacity = "1";
+//   });
+// }
 
-function clearTable() {
-  gameBoard.querySelectorAll("td").forEach((cell) => {
-    cell.innerHTML = null;
-    cell.className = "empty";
-    cell.style.mask = "";
+function clearDiscs() {
+  discLayer.querySelectorAll(".disc").forEach((disc) => {
+    if (disc.id !== "cursorDisc") disc.remove();
   })
 }
 
 // ========================
 // ANIMATIONS
 // ========================
-function animateDisc(element, type) {
-  const targetRect = element.getBoundingClientRect();
-  const boardRect = gameBoard.getBoundingClientRect();
-  const top = targetRect.top + targetRect.height / 2 - boardRect.top;
-  const left = targetRect.left + targetRect.width / 2 - boardRect.left;
-
+function animateDisc(disc, target, type) {
+  const { top, left } = getRelativePosition(target)
   const discAnimation = {
     hover: "top 0.25s ease, left 0.25s ease",
-    drop: "top 0.5s var(--bounce), left 0.5s var(--bounce)"
+    drop: "top 0.85s var(--bounce), left 0.85s var(--bounce)"
   }
 
-  cursorDisc.style.transition = discAnimation[type];
-  cursorDisc.style.top = `${top}px`;
-  cursorDisc.style.left = `${left}px`;
+  disc.style.transition = discAnimation[type];
+  disc.style.top = `${top}px`;
+  disc.style.left = `${left}px`;
 }
 
 function animateHover() {
-  const headerCells = document.querySelectorAll("th");
+  const headerCells = table.querySelectorAll("th");
   const col = Number(this.dataset.col);
-  const target = headerCells[col];
   
-  animateDisc(target, "hover");
+  animateDisc(cursorDisc, headerCells[col], "hover");
 
   if (game.moveCount === 0) {
     updateCursorColor(game.currentPlayerIndex);
   }
 }
 
-function animateDrop(cell) {
-  animateDisc(cell.firstChild, "drop");
+function animateDrop(disc, target) {
+  animateDisc(disc, target, "drop");
 }
 
 function waitForAnimationEnd(element, property = "top") {
@@ -257,7 +253,7 @@ function waitForAnimationEnd(element, property = "top") {
     const timeout = setTimeout(() => {
       cleanup();
       resolve();
-    }, 600);
+    }, 900);
     function cleanup() {
       element.removeEventListener("transitionend", handler);
       clearTimeout(timeout);
@@ -275,26 +271,31 @@ function waitForAnimationEnd(element, property = "top") {
 // ========================
 // GAME FLOW
 // ========================
-function insertDiscElement(cell) {
-  cell.appendChild(createIcon("fa-circle"));
-  cell.className = "transparent";
+function getRelativePosition(target) {
+  const targetRect = target.getBoundingClientRect();
+  const boardRect = gameBoard.getBoundingClientRect();
+
+  return {
+    top: targetRect.top + targetRect.height / 2 - boardRect.top,
+    left: targetRect.left + targetRect.width / 2 - boardRect.left
+  };
 }
 
 async function dropDisc() {
+  if (boardInput.isLocked) return;
   const col = Number(this.dataset.col);
   const row = game.drop(col);
   if (row === null) return;
 
-  const cell = tbody.rows[row].cells[col];
-
-  insertDiscElement(cell);
   boardInput.lock();
-  
-  animateDrop(cell);
-  await waitForAnimationEnd(cursorDisc);
 
-  updateCellUI(cell, game.currentPlayerIndex);
-  updateCursorColor("transparent");
+  const cell = tbody.rows[row].cells[col];
+  const disc = createDiscClone();
+  discLayer.appendChild(disc);
+  
+  updateCursorColor();
+  animateDrop(disc, cell);
+  await waitForAnimationEnd(disc);
 
   const winningPattern = game.checkWin(winPatterns);
 
@@ -312,9 +313,6 @@ async function dropDisc() {
 
   game.switchPlayer();
 
-  animateHover.call(this);
-  await waitForAnimationEnd(cursorDisc);
-
   boardInput.unlock();
   updateCursorColor(game.currentPlayerIndex);
   updateStatus("turn");
@@ -323,14 +321,27 @@ async function dropDisc() {
 // ========================
 // EVENT LISTENERS
 // ========================
-gameBoard.querySelectorAll("td").forEach((cell) => {
+function enableDropDisc() {
+  document.querySelectorAll("td").forEach((cell) => {
+    cell.addEventListener("click", dropDisc);
+  });
+}
+
+function disableDropDisc() {
+  document.querySelectorAll("td").forEach((cell) => {
+    cell.removeEventListener("click", dropDisc);
+  });
+}
+
+enableDropDisc();
+
+document.querySelectorAll("td").forEach((cell) => {
   cell.addEventListener("mouseover", animateHover);
-  cell.addEventListener("click", dropDisc);
 });
 
 document.querySelector("#resetBtn").addEventListener("click", () => {
   game.reset();
-  clearTable();
+  clearDiscs();
   cursorDiscInit();
   updateStatus("turn");
   boardInput.unlock()

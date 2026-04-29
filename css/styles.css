@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,400i,700");
 
 :root {
-  --red: #ff0000;
-  --yellow: #ffff00;
+  --red: radial-gradient(circle, #e53935 0%, #d32f2f 65%, #b71c1c 100%);
+  --yellow:  radial-gradient(circle, #fdd835 0%, #fbc02d 65%, #f9a825 100%);
   --blue: #0077ff;
   --background: #bbbbbb;
   --bounce: linear(0 0%, 0 2.27%, 0.02 4.53%, 0.04 6.8%, 0.06 9.07%, 0.1 11.33%, 0.14 13.6%, 0.25 18.15%, 0.39 22.7%, 0.56 27.25%, 0.77 31.8%, 1 36.35%, 0.89 40.9%, 0.85 43.18%, 0.81 45.45%, 0.79 47.72%, 0.77 50%, 0.75 52.27%, 0.75 54.55%, 0.75 56.82%, 0.77 59.1%, 0.79 61.38%, 0.81 63.65%, 0.85 65.93%, 0.89 68.2%, 1 72.7%, 0.97 74.98%, 0.95 77.25%, 0.94 79.53%, 0.94 81.8%, 0.94 84.08%, 0.95 86.35%, 0.97 88.63%, 1 90.9%, 0.99 93.18%, 0.98 95.45%, 0.99 97.73%, 1 100%);
@@ -36,8 +36,21 @@ main {
   align-items: center;
 }
 
-#gameBoard {
+.boardWrapper {
   position: relative;
+  display: inline-block;
+}
+
+.gameBoard {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+}
+
+.discLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 table {
@@ -71,7 +84,7 @@ td {
 
 td {
   background: #0077ff;
-  mask: radial-gradient(circle 20px at center, transparent 95%, black);
+  mask: radial-gradient(circle 20px at center, transparent 95%, black 100%);
 }
 
 i {
@@ -79,25 +92,50 @@ i {
   transition: opacity 0.2s ease;
 }
 
+.disc {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    inset 0 2px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -2px 3px rgba(255, 255, 255, 0.2);
+}
+
+.disc::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.2);
+}
+
 .red {
-  color: #ff0000;
+  background: var(--red);
 }
 
 .yellow {
-  color: #ffff00;
+  background: var(--yellow);
 }
 
 .transparent {
-  color: transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 #cursorDisc {
-  position: absolute;
   z-index: 2;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
 }
 
 .gameOver {
   pointer-events: none;
+}
+
+.inner {
+  color: radial-gradient(circle at 30% 30%, #ff6b6b, #e53935 60%, #b71c1c);
+}
+
+.outer {
+  color: #b71c1c;
 }
