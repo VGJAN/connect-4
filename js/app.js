@@ -1,6 +1,5 @@
-// ========================
-// GAME LOGIC
-// ========================
+// ---------- GAME LOGIC ---------- //
+
 class Connect4 {
   constructor(rows = 6, cols = 7) {
     this.rows = rows;
@@ -71,9 +70,8 @@ class Connect4 {
   }
 }
 
-// ========================
-// DATA GENERATION
-// ========================
+// ---------- DATA GENERATION ---------- //
+
 function generateWinPatterns() {
   const winPatterns = [];
   const configs = [
@@ -98,9 +96,8 @@ function generateWinPatterns() {
   return winPatterns;
 }
 
-// ========================
-// UI BUILDERS
-// ========================
+// ---------- UI BUILDERS ---------- //
+
 function createTable(rows, cols) {
   const table = document.createElement("table");
   const thead = table.createTHead();
@@ -127,16 +124,15 @@ function createTable(rows, cols) {
   return { table, tbody };
 }
 
-function createDiscClone() {
+function createDiscClone(row, col) {
   const discClone = cursorDisc.cloneNode(false);
-  discClone.removeAttribute("id");
+  discClone.id = `r${row}-c${col}`;
 
   return discClone;
 }
 
-// ========================
-// INITIAL SETUP
-// ========================
+// ---------- INITIAL SETUP ---------- //
+
 const game = new Connect4();
 const winPatterns = generateWinPatterns();
 
@@ -169,12 +165,12 @@ cursorDiscInit();
 const gameStatus = document.querySelector("#gameStatus");
 updateStatus("turn");
 
-// ========================
-// UI HELPERS
-// ========================
+const resetIcon = document.querySelector("#resetBtn i");
+
+// ---------- UI HELPERS ---------- //
+
 function cursorDiscInit() {
-  updateCursorColor();
-  cursorDisc.style.display = "none";
+  hideCursor();
   animateDisc(cursorDisc, table.querySelector("th"), "hover");
 }
 
@@ -192,25 +188,25 @@ function updateStatus(type) {
 }
 
 function updateCursorColor(playerIndex) {
-  if (playerIndex == undefined) {
-    cursorDisc.style.display = "none";
-    return;
-  }
-  cursorDisc.style.display = "unset";
   cursorDisc.className = `disc ${game.players[playerIndex].color}`;
 }
 
-// function highlightWinner(winningCells) {
-//   const icons = table.querySelectorAll("td i");
-//   icons.forEach((icon) => {
-//     icon.style.opacity = "0.5";
-//   });
+function showCursor() {
+  cursorDisc.style.opacity = "1";
+}
 
-//   winningCells.forEach((cell) => {
-//     const icon = cell.firstChild;
-//     // icon.style.opacity = "1";
-//   });
-// }
+function hideCursor() {
+  cursorDisc.style.opacity = "0";
+}
+
+function highlightWinner(winningPattern) {
+  console.log(winningPattern)
+  const winningDiscs = winningPattern.map(([r, c]) => document.querySelector(`#r${r}-c${c}`))
+  console.log(winningDiscs)
+  winningDiscs.forEach((disc) => {
+    disc.classList.add("win");
+  });
+}
 
 function clearDiscs() {
   discLayer.querySelectorAll(".disc").forEach((disc) => {
@@ -218,14 +214,13 @@ function clearDiscs() {
   })
 }
 
-// ========================
-// ANIMATIONS
-// ========================
+// ---------- ANIMATIONS ---------- //
+
 function animateDisc(disc, target, type) {
   const { top, left } = getRelativePosition(target)
   const discAnimation = {
-    hover: "top 0.25s ease, left 0.25s ease",
-    drop: "top 0.85s var(--bounce), left 0.85s var(--bounce)"
+    hover: "top 0.5s ease, left 0.5s ease",
+    drop: "top 0.9s var(--bounce), left 0.9s var(--bounce)"
   }
 
   disc.style.transition = discAnimation[type];
@@ -241,6 +236,7 @@ function animateHover() {
 
   if (game.moveCount === 0) {
     updateCursorColor(game.currentPlayerIndex);
+    showCursor();
   }
 }
 
@@ -268,9 +264,8 @@ function waitForAnimationEnd(element, property = "top") {
   });
 }
 
-// ========================
-// GAME FLOW
-// ========================
+// ---------- GAME FLOW ---------- //
+
 function getRelativePosition(target) {
   const targetRect = target.getBoundingClientRect();
   const boardRect = gameBoard.getBoundingClientRect();
@@ -290,10 +285,10 @@ async function dropDisc() {
   boardInput.lock();
 
   const cell = tbody.rows[row].cells[col];
-  const disc = createDiscClone();
+  const disc = createDiscClone(row, col);
   discLayer.appendChild(disc);
   
-  updateCursorColor();
+  hideCursor();
   animateDrop(disc, cell);
   await waitForAnimationEnd(disc);
 
@@ -301,7 +296,7 @@ async function dropDisc() {
 
   if (winningPattern) {
     game.players[game.currentPlayerIndex].score++;
-    highlightWinner(winningPattern.map(([r, c]) => tbody.rows[r].cells[c]));
+    highlightWinner(winningPattern);
     updateStatus("win");
     return;
   }
@@ -315,12 +310,12 @@ async function dropDisc() {
 
   boardInput.unlock();
   updateCursorColor(game.currentPlayerIndex);
+  showCursor();
   updateStatus("turn");
 }
 
-// ========================
-// EVENT LISTENERS
-// ========================
+// ---------- EVENT LISTENERS ---------- //
+
 function enableDropDisc() {
   document.querySelectorAll("td").forEach((cell) => {
     cell.addEventListener("click", dropDisc);
@@ -341,8 +336,11 @@ document.querySelectorAll("td").forEach((cell) => {
 
 document.querySelector("#resetBtn").addEventListener("click", () => {
   game.reset();
+
+  resetIcon.classList.remove("rotateAnimation");
   clearDiscs();
   cursorDiscInit();
   updateStatus("turn");
-  boardInput.unlock()
+  boardInput.unlock();
+  resetIcon.classList.add("rotateAnimation");
 });

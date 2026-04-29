@@ -1,12 +1,27 @@
-@import url("https://fonts.googleapis.com/css?family=Montserrat:400,400i,700");
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* ---------- VARIABLES ---------- */
 
 :root {
-  --red: radial-gradient(circle, #e53935 0%, #d32f2f 65%, #b71c1c 100%);
-  --yellow:  radial-gradient(circle, #fdd835 0%, #fbc02d 65%, #f9a825 100%);
-  --blue: #0077ff;
-  --background: #bbbbbb;
+  /* COLORS */
+  --red: radial-gradient(circle, #ff4d4d 0%, #e03131 70%, #9b1c1c 100%);
+  --yellow: radial-gradient(circle, #ffd43b 0%, #fab005 70%, #e67700 100%);
+  --board: #2563eb;
+  --board-outline: #0b1f4b;
+  --background: #0b1220;
+  --text: #f1f5f9;
+  --score: linear-gradient(180deg, #343a40 0%, #131313 100%);
+  --drop-shadow: drop-shadow(1px 2px 3px rgba(0,0,0,0.5));
+
+  /* SIZES */
+  --cell-size: 50px;
+  --disc-size: 40px;
+
+  /* ANIMATIONS */
   --bounce: linear(0 0%, 0 2.27%, 0.02 4.53%, 0.04 6.8%, 0.06 9.07%, 0.1 11.33%, 0.14 13.6%, 0.25 18.15%, 0.39 22.7%, 0.56 27.25%, 0.77 31.8%, 1 36.35%, 0.89 40.9%, 0.85 43.18%, 0.81 45.45%, 0.79 47.72%, 0.77 50%, 0.75 52.27%, 0.75 54.55%, 0.75 56.82%, 0.77 59.1%, 0.79 61.38%, 0.81 63.65%, 0.85 65.93%, 0.89 68.2%, 1 72.7%, 0.97 74.98%, 0.95 77.25%, 0.94 79.53%, 0.94 81.8%, 0.94 84.08%, 0.95 86.35%, 0.97 88.63%, 1 90.9%, 0.99 93.18%, 0.98 95.45%, 0.99 97.73%, 1 100%);
 }
+
+/* ---------- BASE ---------- */
 
 * {
   margin: 0;
@@ -19,8 +34,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #bbbbbb;
+  background: var(--background);
+  color: var(--text);
 }
+
+/* ---------- LAYOUT ---------- */
 
 header,
 footer {
@@ -32,9 +50,84 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  /* justify-content: center; */
+  gap: 1rem;
 }
+
+/* ---------- COMPONENT: SCOREBOARD ---------- */
+
+#scoreBoard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 400px;
+  height: 50px;
+}
+
+.players {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  font-size: 1.1em;
+  font-weight: 700;
+  text-shadow: 2px 2px #414649;
+  border-top: 3px solid var(--board);
+  clip-path: polygon(100% 0%, 0% 0%, 5% 100%, 95% 100%);
+}
+
+.playerName {
+  width: 50%;
+  height: 100%;
+  align-content: center;
+}
+
+#player1Name {
+  text-align: left;
+  padding-left: 30px;
+  background: var(--yellow);
+}
+
+#player2Name {
+  text-align: right;
+  padding-right: 30px;
+  background: var(--red);
+}
+
+.scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  z-index: 2;
+  width: 150px;
+  height: 60px;
+  gap: 0.3rem;
+  background: var(--score);
+  filter: var(--drop-shadow);
+  clip-path: polygon(100% 0%, 0% 0%, 15% 100%, 85% 100%);
+  font-size: 2.3em;
+  font-weight: 700;
+}
+
+.playerScore {
+  width: 50px;
+}
+
+#player1Score {
+  text-align: right;
+}
+
+#player2Score {
+  text-align: left;
+}
+
+/* ---------- COMPONENT: GAME BOARD ---------- */
 
 .boardWrapper {
   position: relative;
@@ -44,7 +137,9 @@ main {
 .gameBoard {
   position: relative;
   z-index: 2;
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+  filter: var(--drop-shadow);
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .discLayer {
@@ -55,46 +150,48 @@ main {
 
 table {
   border-collapse: collapse;
+  border-spacing: 0;
   overflow: hidden;
+  width: min-content;
+  background: transparent;
 }
 
-tbody tr:first-child td:first-child {
-  border-top-left-radius: 10px;
+thead {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  border-left: 7px solid #00000000;
+  border-right: 7px solid #00000000;
 }
 
-tbody tr:first-child td:last-child {
-  border-top-right-radius: 10px;
+tbody {
+  display: block;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 7px solid var(--board-outline);
 }
 
-tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 10px;
-}
-
-tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 10px;
+tr {
+  display: table;
+  table-layout: fixed;
 }
 
 th,
 td {
-  min-width: 50px;
-  height: 50px;
-  text-align: center;
-  vertical-align: middle;
+  min-width: var(--cell-size);
+  height: var(--cell-size);
 }
 
 td {
-  background: #0077ff;
-  mask: radial-gradient(circle 20px at center, transparent 95%, black 100%);
+  background: var(--board);
+  mask: radial-gradient(circle calc(var(--disc-size) / 2) at center, transparent 95%, black 100%);
+  cursor: pointer;
 }
 
-i {
-  font-size: 40px;
-  transition: opacity 0.2s ease;
-}
-
+/* ---------- COMPONENT: DISC ---------- */
 .disc {
-  width: 40px;
-  height: 40px;
+  width: var(--disc-size);
+  height: var(--disc-size);
   border-radius: 50%;
   position: absolute;
   transform: translate(-50%, -50%);
@@ -111,31 +208,104 @@ i {
   border: 2px solid rgba(0,0,0,0.2);
 }
 
-.red {
+.disc.red {
   background: var(--red);
 }
 
-.yellow {
+.disc.yellow {
   background: var(--yellow);
 }
 
-.transparent {
-  background: transparent;
-  box-shadow: none;
+.win {
+  animation: blink 1s ease-in-out infinite alternate;
 }
+
+/* ---------- COMPONENT: CURSOR DISC ---------- */
 
 #cursorDisc {
   z-index: 2;
+  transition: opacity 0.2s ease;
 }
 
-.gameOver {
-  pointer-events: none;
+/* ---------- COMPONENT: GAME CONTROLS ---------- */
+
+.gameControls {
+  display: flex;
+  gap: 1rem;
+  width: 360px;
 }
 
-.inner {
-  color: radial-gradient(circle at 30% 30%, #ff6b6b, #e53935 60%, #b71c1c);
+/* ---------- COMPONENT: STATUS TEXT ---------- */
+
+#gameStatus {
+  width: 100%;
+  height: 50px;
+  background: var(--board);
+  border: 5px solid var(--board-outline);
+  border-radius: 10px;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
+  filter: var(--drop-shadow);
+  text-align: center;
+  align-content: center;
+  font-weight: 500;
+  font-size: 1.1em;
 }
 
-.outer {
-  color: #b71c1c;
+/* ---------- COMPONENT: RESET BUTTON ---------- */
+
+i {
+  font-size: 25px;
+}
+
+#resetBtn {
+  min-width: 50px;
+  height: 50px;
+  text-align: center;
+  align-content: center;
+  background: var(--board);
+  border: 5px solid var(--board-outline);
+  border-radius: 10px;
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
+  filter: var(--drop-shadow);
+  transition: scale 0.1s ease;
+  cursor: pointer;
+}
+
+#resetBtn:hover {
+  transform: scale(1.08);
+}
+
+#resetBtn:active {
+  transform: scale(1);
+}
+
+.rotateAnimation {
+  animation: swooshRotate 0.3s ease-out;
+}
+
+/* ---------- KEYFRAMES ---------- */
+
+@keyframes swooshRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  60% {
+    transform: rotate(220deg);
+  }
+  80% {
+    transform: rotate(340deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }

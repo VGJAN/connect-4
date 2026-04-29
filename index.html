@@ -15,13 +15,13 @@
     <main>
       <div id="scoreBoard">
         <div class="players">
-          <p id="player1Name">Player 1</p>
-          <p id="player2Name">Player 2</p>
+          <p class="playerName" id="player1Name">Player 1</p>
+          <p class="playerName" id="player2Name">Player 2</p>
         </div>
         <div class="scores">
-          <p id="player1Score">0</p>
-          <p>:</p>
-          <p id="player2Score">0</p>
+          <p class="playerScore" id="player1Score"></p>
+          <p class="divider">:</p>
+          <p class="playerScore" id="player2Score"></p>
         </div>
       </div>
       <div class="boardWrapper">
@@ -30,8 +30,12 @@
         </div>
         <div class="gameBoard"></div>
       </div>
-      <div id="gameStatus"></div>
-      <div id="resetBtn">Reset</div>
+      <div class="gameControls">
+        <div id="gameStatus"></div>
+        <div id="resetBtn">
+          <i class="fa-solid fa-rotate-right"></i>
+        </div>
+      </div>
     </main>
 
     <footer>
