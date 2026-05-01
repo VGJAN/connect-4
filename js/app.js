@@ -160,6 +160,7 @@ const player1Score = document.querySelector("#player1Score");
 const player2Score = document.querySelector("#player2Score");
 
 const cursorDisc = document.querySelector("#cursorDisc");
+let lastCursorCell;
 cursorDiscInit();
 
 const gameStatus = document.querySelector("#gameStatus");
@@ -171,7 +172,8 @@ const resetIcon = document.querySelector("#resetBtn i");
 
 function cursorDiscInit() {
   hideCursor();
-  animateDisc(cursorDisc, table.querySelector("th"), "hover");
+  lastCursorCell = table.querySelector("th");
+  animateDisc(cursorDisc, lastCursorCell, "hover");
 }
 
 function updateStatus(type) {
@@ -231,8 +233,9 @@ function animateDisc(disc, target, type) {
 function animateHover() {
   const headerCells = table.querySelectorAll("th");
   const col = Number(this.dataset.col);
+  lastCursorCell = headerCells[col];
   
-  animateDisc(cursorDisc, headerCells[col], "hover");
+  animateDisc(cursorDisc, lastCursorCell, "hover");
 
   if (game.moveCount === 0) {
     updateCursorColor(game.currentPlayerIndex);
@@ -344,3 +347,25 @@ document.querySelector("#resetBtn").addEventListener("click", () => {
   boardInput.unlock();
   resetIcon.classList.add("rotateAnimation");
 });
+
+window.addEventListener("resize", repositionDiscs)
+
+function repositionDiscs() {
+  document.querySelectorAll(".disc").forEach((disc) => {
+    let cell;
+    if (disc.id === "cursorDisc") {
+      cell = lastCursorCell;
+    }
+    else {
+      const r = disc.id[1];
+      const c = disc.id[4];
+      cell = tbody.rows[r].cells[c];
+    }
+    
+    const { top, left } = getRelativePosition(cell);
+
+    disc.style.transition = "none";
+    disc.style.top = `${top}px`;
+    disc.style.left = `${left}px`;
+  })
+}

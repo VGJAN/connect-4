@@ -4,18 +4,36 @@
 
 :root {
   /* COLORS */
-  --red: radial-gradient(circle, #ff4d4d 0%, #e03131 70%, #9b1c1c 100%);
-  --yellow: radial-gradient(circle, #ffd43b 0%, #fab005 70%, #e67700 100%);
-  --board: #2563eb;
-  --board-outline: #0b1f4b;
-  --background: #0b1220;
-  --text: #f1f5f9;
-  --score: linear-gradient(180deg, #343a40 0%, #131313 100%);
-  --drop-shadow: drop-shadow(1px 2px 3px rgba(0,0,0,0.5));
+  --color-bg: #0b1220;
+  --color-text: #f1f5f9;
+  --color-hover: #1d4ed8;
+  --color-border: #0b1f4b;
+  --color-blue: #2563eb;
+  --color-red: radial-gradient(circle, #ff4d4d 0%, #e03131 70%, #9b1c1c 100%);
+  --color-yellow: radial-gradient(circle, #ffd43b 0%, #fab005 70%, hsl(31, 100%, 45%) 100%);
+  --color-score-bg: radial-gradient(#2d2e30 0%, #000000 130%);
+  --color-score-border: linear-gradient(160deg, #374151 0%, #000000 100%);
+  --color-playerName-bg: linear-gradient(90deg, #000000 -20%, #e67700 10%, #fab005 40%, #ffd43b 45%, #fab005 47%, #e67700 50%, #9b1c1c 50%, #e03131 53%, #ff4d4d 55%, #e03131 60%, #9b1c1c 90%, #000000 120%);
+  --color-playerName-border: linear-gradient(90deg, #e67700 0%, #fab005 10%, #ffd43b 25%, #fab005 40%, #e67700 50%, #9b1c1c 50%, #e03131  60%, #ff4d4d 75%, #e03131 90%, #9b1c1c 100%);
 
   /* SIZES */
-  --cell-size: 50px;
-  --disc-size: 40px;
+  --cell-size: min(10vw, 8vh);
+  --disc-size: calc(var(--cell-size) * 0.8);
+  --scoreboard-width: calc(var(--cell-size) * 7 + var(--border-size) * 2);
+  --scoreboard-height: var(--cell-size);
+  --border-size: calc(var(--cell-size) * 0.2);
+  --playerName-padding: calc(var(--scoreboard-height) * 0.6);
+  --playerName-font-size: calc(var(--scoreboard-height) * 0.3);
+  --score-font-size: calc(var(--scoreboard-height) * 0.75);
+  --gameStatus-font-size: calc(var(--cell-size) * 0.4);
+  --score-width: calc(var(--scoreboard-width) * 0.45);
+  --score-height: calc(var(--scoreboard-height) * 1.3);
+  --resetBtn-size: calc(var(--disc-size) * 0.5);
+  --gameControls-border-size: calc(var(--cell-size) * 0.1);
+  --border-radius: calc(var(--cell-size) * 0.6);
+  
+  /* EFFECTS */
+  --drop-shadow: drop-shadow(1px 2px 3px #00000080);
 
   /* ANIMATIONS */
   --bounce: linear(0 0%, 0 2.27%, 0.02 4.53%, 0.04 6.8%, 0.06 9.07%, 0.1 11.33%, 0.14 13.6%, 0.25 18.15%, 0.39 22.7%, 0.56 27.25%, 0.77 31.8%, 1 36.35%, 0.89 40.9%, 0.85 43.18%, 0.81 45.45%, 0.79 47.72%, 0.77 50%, 0.75 52.27%, 0.75 54.55%, 0.75 56.82%, 0.77 59.1%, 0.79 61.38%, 0.81 63.65%, 0.85 65.93%, 0.89 68.2%, 1 72.7%, 0.97 74.98%, 0.95 77.25%, 0.94 79.53%, 0.94 81.8%, 0.94 84.08%, 0.95 86.35%, 0.97 88.63%, 1 90.9%, 0.99 93.18%, 0.98 95.45%, 0.99 97.73%, 1 100%);
@@ -34,16 +52,16 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--background);
-  color: var(--text);
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* ---------- LAYOUT ---------- */
 
-header,
-footer {
+header {
   text-align: center;
-  padding: 1rem;
+  padding: 1.5rem;
+  font-size: var(--gameStatus-font-size);
 }
 
 main {
@@ -51,8 +69,8 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* justify-content: center; */
-  gap: 1rem;
+  justify-content: center;
+  gap: calc(var(--cell-size) * 0.5);
 }
 
 /* ---------- COMPONENT: SCOREBOARD ---------- */
@@ -63,8 +81,8 @@ main {
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 400px;
-  height: 50px;
+  width: var(--scoreboard-width);
+  height: var(--scoreboard-height);
 }
 
 .players {
@@ -74,11 +92,12 @@ main {
   z-index: 1;
   width: 100%;
   height: 100%;
-  font-size: 1.1em;
+  font-size: var(--playerName-font-size);
   font-weight: 700;
   text-shadow: 2px 2px #414649;
-  border-top: 3px solid var(--board);
-  clip-path: polygon(100% 0%, 0% 0%, 5% 100%, 95% 100%);
+  background: var(--color-playerName-border);
+  clip-path: polygon(100% 0%, 0% 0%, 3% 100%, 97% 100%);
+  filter: var(--drop-shadow);
 }
 
 .playerName {
@@ -87,16 +106,23 @@ main {
   align-content: center;
 }
 
+.players::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: var(--border-size);
+  clip-path: polygon(99% 0%, 1% 0%, 3% 100%, 97% 100%);
+  background: var(--color-playerName-bg)
+}
+
 #player1Name {
   text-align: left;
-  padding-left: 30px;
-  background: var(--yellow);
+  padding-left: var(--playerName-padding);
 }
 
 #player2Name {
   text-align: right;
-  padding-right: 30px;
-  background: var(--red);
+  padding-right: var(--playerName-padding);
 }
 
 .scores {
@@ -105,18 +131,28 @@ main {
   justify-content: center;
   position: absolute;
   z-index: 2;
-  width: 150px;
-  height: 60px;
+  width: var(--score-width);
+  height: var(--score-height);
   gap: 0.3rem;
-  background: var(--score);
   filter: var(--drop-shadow);
-  clip-path: polygon(100% 0%, 0% 0%, 15% 100%, 85% 100%);
-  font-size: 2.3em;
+  clip-path: polygon(100% 0%, 0% 0%, 10% 100%, 90% 100%);
+  background: var(--color-score-border);
+  font-size: var(--score-font-size);
   font-weight: 700;
+  text-shadow: 2px 2px #414649;
+}
+
+.scores::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: var(--border-size);
+  clip-path: polygon(99% 0%, 1% 0%, 10% 100%, 90% 100%);
+  background: var(--color-score-bg);
 }
 
 .playerScore {
-  width: 50px;
+  width: 50%;
 }
 
 #player1Score {
@@ -138,7 +174,7 @@ main {
   position: relative;
   z-index: 2;
   filter: var(--drop-shadow);
-  border-radius: 20px;
+  border-radius: var(--border-radius);
   overflow: hidden;
 }
 
@@ -160,15 +196,14 @@ thead {
   display: table;
   table-layout: fixed;
   width: 100%;
-  border-left: 7px solid #00000000;
-  border-right: 7px solid #00000000;
+  border: var(--border-size) solid #00000000;
 }
 
 tbody {
   display: block;
   overflow: hidden;
-  border-radius: 20px;
-  border: 7px solid var(--board-outline);
+  border-radius: var(--border-radius);
+  border: var(--border-size) solid var(--color-border);
 }
 
 tr {
@@ -183,7 +218,7 @@ td {
 }
 
 td {
-  background: var(--board);
+  background: var(--color-blue);
   mask: radial-gradient(circle calc(var(--disc-size) / 2) at center, transparent 95%, black 100%);
   cursor: pointer;
 }
@@ -196,8 +231,8 @@ td {
   position: absolute;
   transform: translate(-50%, -50%);
   box-shadow:
-    inset 0 2px 3px rgba(0, 0, 0, 0.3),
-    inset 0 -2px 3px rgba(255, 255, 255, 0.2);
+    inset 0 2px 3px #0000004d,
+    inset 0 -2px 3px #ffffff33;
 }
 
 .disc::after {
@@ -205,15 +240,15 @@ td {
   position: absolute;
   inset: 3px;
   border-radius: 50%;
-  border: 2px solid rgba(0,0,0,0.2);
+  border: 2px solid #00000033;
 }
 
 .disc.red {
-  background: var(--red);
+  background: var(--color-red);
 }
 
 .disc.yellow {
-  background: var(--yellow);
+  background: var(--color-yellow);
 }
 
 .win {
@@ -232,43 +267,43 @@ td {
 .gameControls {
   display: flex;
   gap: 1rem;
-  width: 360px;
+  width: var(--scoreboard-width);
 }
 
 /* ---------- COMPONENT: STATUS TEXT ---------- */
 
 #gameStatus {
   width: 100%;
-  height: 50px;
-  background: var(--board);
-  border: 5px solid var(--board-outline);
-  border-radius: 10px;
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
+  height: var(--cell-size);
+  background: var(--color-blue);
+  border: var(--gameControls-border-size) solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: inset 0 0 2px #000000cc;
   filter: var(--drop-shadow);
   text-align: center;
   align-content: center;
   font-weight: 500;
-  font-size: 1.1em;
+  font-size: var(--gameStatus-font-size);
 }
 
 /* ---------- COMPONENT: RESET BUTTON ---------- */
 
 i {
-  font-size: 25px;
+  font-size: var(--resetBtn-size);
 }
 
 #resetBtn {
-  min-width: 50px;
-  height: 50px;
+  min-width: var(--cell-size);
+  height: var(--cell-size);
   text-align: center;
   align-content: center;
-  background: var(--board);
-  border: 5px solid var(--board-outline);
-  border-radius: 10px;
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
+  background: var(--color-blue);
+  border: var(--gameControls-border-size) solid var(--color-border);
+  border-radius: 20px;
   filter: var(--drop-shadow);
-  transition: scale 0.1s ease;
+  transition: transform 0.1s ease;
   cursor: pointer;
+  overflow: hidden;
 }
 
 #resetBtn:hover {
