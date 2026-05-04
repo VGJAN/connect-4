@@ -7,32 +7,37 @@
   --color-bg: #0b1220;
   --color-text: #f1f5f9;
   --color-hover: #1d4ed8;
-  --color-border: #0b1f4b;
   --color-blue: #2563eb;
-  --color-red: radial-gradient(circle, #ff4d4d 0%, #e03131 70%, #9b1c1c 100%);
-  --color-yellow: radial-gradient(circle, #ffd43b 0%, #fab005 70%, hsl(31, 100%, 45%) 100%);
-  --color-score-bg: radial-gradient(#2d2e30 0%, #000000 130%);
-  --color-score-border: linear-gradient(160deg, #374151 0%, #000000 100%);
-  --color-playerName-bg: linear-gradient(90deg, #000000 -20%, #e67700 10%, #fab005 40%, #ffd43b 45%, #fab005 47%, #e67700 50%, #9b1c1c 50%, #e03131 53%, #ff4d4d 55%, #e03131 60%, #9b1c1c 90%, #000000 120%);
-  --color-playerName-border: linear-gradient(90deg, #e67700 0%, #fab005 10%, #ffd43b 25%, #fab005 40%, #e67700 50%, #9b1c1c 50%, #e03131  60%, #ff4d4d 75%, #e03131 90%, #9b1c1c 100%);
+  --color-blue-border: #0b1f4b;
+  --color-yellow-border: #fab005;
+  --color-red-border: #e03131;
+  --color-score-border: #2d2e30;
+
+  /* GRADIENTS */
+  --gradient-yellow: radial-gradient(circle, #ffd43b 0%, #fab005 50%, #e67700 100%);
+  --gradient-red: radial-gradient(circle, #ff4d4d 0%, #e03131 50%, #9b1c1c 100%);
+  --gradient-score-bg: radial-gradient(#2d2e30 0%, #000000 130%);
+  --gradient-shadow: radial-gradient(circle, transparent 50%, #000000 200%);
 
   /* SIZES */
-  --cell-size: min(10vw, 8vh);
+  --cell-size: min(10vw, 7.5vh);
   --disc-size: calc(var(--cell-size) * 0.8);
   --scoreboard-width: calc(var(--cell-size) * 7 + var(--border-size) * 2);
   --scoreboard-height: var(--cell-size);
   --border-size: calc(var(--cell-size) * 0.2);
-  --playerName-padding: calc(var(--scoreboard-height) * 0.6);
+  --playerName-padding: calc(var(--scoreboard-height) * 0.3);
   --playerName-font-size: calc(var(--scoreboard-height) * 0.3);
   --score-font-size: calc(var(--scoreboard-height) * 0.75);
   --gameStatus-font-size: calc(var(--cell-size) * 0.4);
-  --score-width: calc(var(--scoreboard-width) * 0.45);
+  --score-width: calc(var(--scoreboard-width) * 0.4);
   --score-height: calc(var(--scoreboard-height) * 1.3);
   --resetBtn-size: calc(var(--disc-size) * 0.5);
-  --gameControls-border-size: calc(var(--cell-size) * 0.1);
+  --gameControls-border-size: calc(var(--cell-size) * 0.15);
   --border-radius: calc(var(--cell-size) * 0.6);
+  --gap-size: calc(var(--cell-size) * 0.5);
   
   /* EFFECTS */
+  --text-shadow: 2px 2px #414649;
   --drop-shadow: drop-shadow(1px 2px 3px #00000080);
 
   /* ANIMATIONS */
@@ -70,7 +75,7 @@ main {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--cell-size) * 0.5);
+  gap: var(--gap-size);
 }
 
 /* ---------- COMPONENT: SCOREBOARD ---------- */
@@ -94,9 +99,7 @@ main {
   height: 100%;
   font-size: var(--playerName-font-size);
   font-weight: 700;
-  text-shadow: 2px 2px #414649;
-  background: var(--color-playerName-border);
-  clip-path: polygon(100% 0%, 0% 0%, 3% 100%, 97% 100%);
+  text-shadow: var(--text-shadow);
   filter: var(--drop-shadow);
 }
 
@@ -106,23 +109,22 @@ main {
   align-content: center;
 }
 
-.players::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: var(--border-size);
-  clip-path: polygon(99% 0%, 1% 0%, 3% 100%, 97% 100%);
-  background: var(--color-playerName-bg)
-}
-
 #player1Name {
   text-align: left;
   padding-left: var(--playerName-padding);
+  border: var(--border-size) solid var(--color-yellow-border);
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+  background: var(--gradient-yellow);
 }
 
 #player2Name {
   text-align: right;
   padding-right: var(--playerName-padding);
+  border: var(--border-size) solid var(--color-red-border);
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  background: var(--gradient-red);
 }
 
 .scores {
@@ -135,20 +137,12 @@ main {
   height: var(--score-height);
   gap: 0.3rem;
   filter: var(--drop-shadow);
-  clip-path: polygon(100% 0%, 0% 0%, 10% 100%, 90% 100%);
-  background: var(--color-score-border);
   font-size: var(--score-font-size);
   font-weight: 700;
-  text-shadow: 2px 2px #414649;
-}
-
-.scores::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: var(--border-size);
-  clip-path: polygon(99% 0%, 1% 0%, 10% 100%, 90% 100%);
-  background: var(--color-score-bg);
+  text-shadow: var(--text-shadow);
+  border: var(--border-size) solid var(--color-score-border);
+  border-radius: var(--border-radius);
+  background: var(--gradient-score-bg);
 }
 
 .playerScore {
@@ -196,14 +190,15 @@ thead {
   display: table;
   table-layout: fixed;
   width: 100%;
-  border: var(--border-size) solid #00000000;
+  border-left: var(--border-size) solid transparent;
+  border-right: var(--border-size) solid transparent;
 }
 
 tbody {
   display: block;
   overflow: hidden;
   border-radius: var(--border-radius);
-  border: var(--border-size) solid var(--color-border);
+  border: var(--border-size) solid var(--color-blue-border);
 }
 
 tr {
@@ -238,17 +233,17 @@ td {
 .disc::after {
   content: "";
   position: absolute;
-  inset: 3px;
+  inset: calc(var(--cell-size) * 0.06);
   border-radius: 50%;
-  border: 2px solid #00000033;
+  background: var(--gradient-shadow);
 }
 
 .disc.red {
-  background: var(--color-red);
+  background: var(--gradient-red);
 }
 
 .disc.yellow {
-  background: var(--color-yellow);
+  background: var(--gradient-yellow);
 }
 
 .win {
@@ -266,7 +261,7 @@ td {
 
 .gameControls {
   display: flex;
-  gap: 1rem;
+  gap: var(--gap-size);
   width: var(--scoreboard-width);
 }
 
@@ -276,8 +271,8 @@ td {
   width: 100%;
   height: var(--cell-size);
   background: var(--color-blue);
-  border: var(--gameControls-border-size) solid var(--color-border);
-  border-radius: 20px;
+  border: var(--gameControls-border-size) solid var(--color-blue-border);
+  border-radius: var(--border-radius);
   box-shadow: inset 0 0 2px #000000cc;
   filter: var(--drop-shadow);
   text-align: center;
@@ -290,16 +285,18 @@ td {
 
 i {
   font-size: var(--resetBtn-size);
+  transition: transform 0.1s ease;
 }
 
 #resetBtn {
   min-width: var(--cell-size);
   height: var(--cell-size);
-  text-align: center;
-  align-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--color-blue);
-  border: var(--gameControls-border-size) solid var(--color-border);
-  border-radius: 20px;
+  border: var(--gameControls-border-size) solid var(--color-blue-border);
+  border-radius: var(--border-radius);
   filter: var(--drop-shadow);
   transition: transform 0.1s ease;
   cursor: pointer;
@@ -307,6 +304,10 @@ i {
 }
 
 #resetBtn:hover {
+  transform: scale(1.08);
+}
+
+#resetBtn:hover i {
   transform: scale(1.08);
 }
 
